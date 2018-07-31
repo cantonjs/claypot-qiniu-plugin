@@ -1972,10 +1972,6 @@ del@^2.0.2:
     pinkie-promise "^2.0.0"
     rimraf "^2.2.8"
 
-delay@^3.0.0:
-  version "3.0.0"
-  resolved "http://registry.npm.taobao.org/delay/download/delay-3.0.0.tgz#97fc5c21028e20616e822ab11838c648808534eb"
-
 delayed-stream@~1.0.0:
   version "1.0.0"
   resolved "http://registry.npm.taobao.org/delayed-stream/download/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
@@ -5373,10 +5369,6 @@ p-locate@^2.0.0:
 p-map@^1.1.1:
   version "1.1.1"
   resolved "http://registry.npm.taobao.org/p-map/download/p-map-1.1.1.tgz#05f5e4ae97a068371bc2a5cc86bfbdbc19c4ae7a"
-
-p-queue@^2.4.2:
-  version "2.4.2"
-  resolved "http://registry.npm.taobao.org/p-queue/download/p-queue-2.4.2.tgz#03609826682b743be9a22dba25051bd46724fc34"
 
 pac-proxy-agent@^2.0.1:
   version "2.0.2"

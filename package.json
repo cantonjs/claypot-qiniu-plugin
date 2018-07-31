@@ -1,6 +1,6 @@
 {
-  "name": "claypot-wxapp-auth-plugin",
-  "description": "claypot plugin for wechat mini program login and get user info",
+  "name": "claypot-qiniu-plugin",
+  "description": "claypot plugin for qiniu",
   "version": "0.1.0",
   "main": "lib/index",
   "files": [
@@ -16,14 +16,13 @@
     "preversion": "yarn test && yarn build"
   },
   "author": "Cap32",
-  "repository": "cantonjs/claypot-wxapp-auth-plugin",
+  "repository": "cantonjs/claypot-qiniu-plugin",
   "engines": {
     "node": ">=7.6"
   },
   "keywords": [],
   "license": "MIT",
   "dependencies": {
-    "p-queue": "^2.4.2",
     "qiniu": "^7.2.1",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5"
@@ -44,7 +43,6 @@
     "claypot": "^0.1.1",
     "claypot-restful-plugin": "^0.0.1",
     "cross-env": "^4.0.0",
-    "delay": "^3.0.0",
     "eslint": "^4.19.1",
     "eslint-config-cantonjs": "^0.2.0",
     "eslint-config-standard": "^11.0.0",
