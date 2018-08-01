@@ -2,25 +2,12 @@ import { ensureLogger, createApp } from 'claypot';
 import qiniu from 'qiniu';
 import rp from 'request-promise-native';
 
+const isQiniuCallback = (mac, requestURI, reqBody, callbackAuth) => {
+	const auth = exports.generateAccessToken(mac, requestURI, reqBody);
+	return auth === callbackAuth;
+};
+
 const logger = ensureLogger('qiniu', 'blueBright');
-
-// const qiniuReq = new RequestExtra({
-// 	type: 'json',
-// 	responseType: 'json',
-// 	simple: true,
-// 	responseDataTransformer(data) {
-// 		if (data && data.errmsg) {
-// 			const error = new Error(data.errmsg);
-// 			error.code = data.errcode;
-// 			throw error;
-// 		}
-// 		return data;
-// 	},
-// });
-
-// const MAX_CONECTION = 50;
-
-// const fetchQuene = new PQueue({ concurrency: MAX_CONECTION });
 
 const QINIU_BASE64_PATH = 'putb64/-1';
 
@@ -120,6 +107,7 @@ export default class QiniuClaypotPlugin {
 		});
 
 		this._qiniu = qiniu;
+		this._qiniuConfig = config;
 	}
 
 	_getUptoken() {
@@ -187,12 +175,69 @@ export default class QiniuClaypotPlugin {
 
 		return {
 			uploadByBase64,
+			uplaodByUrl,
 			uploadByBuffer: async (data) => {
 				const buffer = Buffer.from(data);
 				const base64 = buffer.toString('base64');
 				return uploadByBase64(base64);
 			},
-			uplaodByUrl,
+			uploadByStream: (data) => {
+				const { _qiniuConfig, _domain, _qiniu } = this;
+				const { uptoken } = this._getUptoken();
+				const formUploader = new _qiniu.form_up.FormUploader(_qiniuConfig);
+				const putExtra = new _qiniu.form_up.PutExtra();
+				return new Promise((resolve, reject) => {
+					formUploader.putStream(uptoken, null, data, putExtra, function (respErr, respBody, respInfo) {
+						if (respErr) {
+							logger.error('[claypot-qiniu-plugin] uploadByStream error: ', respErr);
+							throw respErr;
+						}
+						if (respInfo.statusCode === 200) {
+							resolve({ url: _domain + respInfo.key, ...respInfo });
+						} else {
+							logger.error('[claypot-qiniu-plugin] uploadByStream error: ', respBody);
+							reject(respBody);
+						}
+					});
+				});
+			},
+			uploadByFile: (filePath, name, isUseResume) => {
+				const { _qiniu, _domain, _qiniuConfig } = this;
+				const { uptoken } = this._getUptoken();
+				const putExtra = new _qiniu.form_up.PutExtra();
+				const Uploader = isUseResume ? _qiniu.resume_up.ResumeUploader : _qiniu.form_up.FormUploader;
+				const uploader = new Uploader(_qiniuConfig);
+
+				if (isUseResume) {
+					const fname = name || filePath;
+
+					// 扩展参数
+					putExtra.params = {
+						'x:name': fname,
+						'x:age': 27,
+					};
+
+					putExtra.fname = fname;
+
+					// 如果指定了断点记录文件，那么下次会从指定的该文件尝试读取上次上传的进度，以实现断点续传
+					putExtra.resumeRecordFile = `${fname}_progress.log`;
+				}
+
+				return new Promise((resolve, reject) => {
+					uploader.putFile(uptoken, null, filePath, putExtra, function (respErr, respBody, respInfo) {
+						if (respErr) {
+							logger.error('[claypot-qiniu-plugin] uploadByFile error: ', respErr);
+							throw respErr;
+						}
+						if (respInfo.statusCode === 200) {
+							resolve({ url: _domain + respInfo.key, ...respInfo });
+						} else {
+							logger.error('[claypot-qiniu-plugin] uploadByFile error: ', respBody);
+							reject(respBody);
+						}
+					});
+				});
+			},
 		};
 	}
 

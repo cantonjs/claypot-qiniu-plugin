@@ -13,6 +13,20 @@ export default {
 			operator: 'uploadByBuffer',
 		},
 	},
+	'/stream': {
+		post: {
+			summary: 'upload by stream',
+			security: [],
+			operator: 'uploadByStream',
+		},
+	},
+	'/file': {
+		post: {
+			summary: 'upload by stream',
+			security: [],
+			operator: 'uploadByFile',
+		},
+	},
 	'/url': {
 		post: {
 			summary: 'upload by url',

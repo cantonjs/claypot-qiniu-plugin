@@ -11,6 +11,15 @@ export default class Images {
 		return this.$qiniu.uploadByBuffer(buffer);
 	}
 
+	async uploadByStream() {
+		const stream = fs.createReadStream('./test/images/cat.png');
+		return this.$qiniu.uploadByStream(stream);
+	}
+
+	async uploadByFile() {
+		return this.$qiniu.uploadByFile('./test/images/cat.png');
+	}
+
 	async uploadByUrl({ body }) {
 		const { url } = body;
 		return this.$qiniu.uplaodByUrl(url);

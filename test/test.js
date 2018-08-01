@@ -46,6 +46,34 @@ describe('claypot qiniu plugin', () => {
 		});
 	});
 
+	test('should uploadByStream work', async () => {
+		const { urlRoot } = await startServer();
+		const res = await fetch(`${urlRoot}/api/images/stream`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+		});
+
+		const resJSON = await res.json();
+
+		expect(resJSON).toMatchObject({
+			url: expect.any(String),
+		});
+	});
+
+	test('should uploadByFile work', async () => {
+		const { urlRoot } = await startServer();
+		const res = await fetch(`${urlRoot}/api/images/file`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+		});
+
+		const resJSON = await res.json();
+
+		expect(resJSON).toMatchObject({
+			url: expect.any(String),
+		});
+	});
+
 	test('should uploadByUrl work', async () => {
 		const { urlRoot } = await startServer();
 

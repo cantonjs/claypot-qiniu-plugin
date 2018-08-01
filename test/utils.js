@@ -13,7 +13,6 @@ export async function startServer(pluginConfig, claypotConfig) {
 		execCommand: 'babel-register',
 		production: false,
 		plugins: [
-			// './middlewares/wechat',
 			{
 				module: '../src',
 				options: {
