@@ -67,7 +67,9 @@ export default class QiniuClaypotPlugin {
 		}
 
 		if (!zones[zone]) {
-			throw new Error('[claypot-qiniu-plugin] zone should be one of [z0, z1, z2, na0, as0]');
+			throw new Error(
+				'[claypot-qiniu-plugin] zone should be one of [z0, z1, z2, na0, as0]',
+			);
 		}
 
 		this._path = path;
@@ -96,7 +98,6 @@ export default class QiniuClaypotPlugin {
 
 		qiniu.conf.ACCESS_KEY = key;
 		qiniu.conf.SECRET_KEY = secret;
-
 
 		this._mac = new qiniu.auth.digest.Mac(key, secret);
 		this._bucketManager = new qiniu.rs.BucketManager(this._mac, config);
@@ -134,30 +135,38 @@ export default class QiniuClaypotPlugin {
 				body: base64,
 				simple: true,
 				method: 'POST',
-			})
-				.then((data) => {
-					if (data && data.code) {
-						const error = new Error(data.message);
-						error.code = data.code;
-						logger.error('[claypot-qiniu-plugin] qiniu base64 upload error: ', data.message);
-						throw error;
-					}
-					return JSON.parse(data);
-				});
+			}).then((data) => {
+				if (data && data.code) {
+					const error = new Error(data.message);
+					error.code = data.code;
+					logger.error(
+						'[claypot-qiniu-plugin] qiniu base64 upload error: ',
+						data.message,
+					);
+					throw error;
+				}
+				return JSON.parse(data);
+			});
 			return { url: _domain + res.key, ...res };
 		};
 
-		const uplaodByUrl = (sourceUrl) => {
+		const uploadByUrl = (sourceUrl) => {
 			return new Promise((resolve, reject) => {
 				_bucketManager.fetch(sourceUrl, _bucket, null, (err, respBody) => {
 					if (err) {
-						logger.error(`[claypot-qiniu-plugin] qiniu fetch ${sourceUrl} error:`, err.code);
+						logger.error(
+							`[claypot-qiniu-plugin] qiniu fetch ${sourceUrl} error:`,
+							err.code,
+						);
 						reject(err);
 					}
 					else {
 						const { error } = respBody;
 						if (error) {
-							logger.error(`[claypot-qiniu-plugin] qiniu fetch ${sourceUrl} error:`, error);
+							logger.error(
+								`[claypot-qiniu-plugin] qiniu fetch ${sourceUrl} error:`,
+								error,
+							);
 							reject(error);
 						}
 						else {
@@ -170,12 +179,11 @@ export default class QiniuClaypotPlugin {
 					}
 				});
 			});
-
 		};
 
 		return {
 			uploadByBase64,
-			uplaodByUrl,
+			uploadByUrl,
 			uploadByBuffer: async (data) => {
 				const buffer = Buffer.from(data);
 				const base64 = buffer.toString('base64');
@@ -187,15 +195,26 @@ export default class QiniuClaypotPlugin {
 				const formUploader = new _qiniu.form_up.FormUploader(_qiniuConfig);
 				const putExtra = new _qiniu.form_up.PutExtra();
 				return new Promise((resolve, reject) => {
-					formUploader.putStream(uptoken, null, data, putExtra, function (respErr, respBody, respInfo) {
+					formUploader.putStream(uptoken, null, data, putExtra, function (
+						respErr,
+						respBody,
+						respInfo,
+					) {
 						if (respErr) {
-							logger.error('[claypot-qiniu-plugin] uploadByStream error: ', respErr);
+							logger.error(
+								'[claypot-qiniu-plugin] uploadByStream error: ',
+								respErr,
+							);
 							throw respErr;
 						}
 						if (respInfo.statusCode === 200) {
 							resolve({ url: _domain + respInfo.key, ...respInfo });
-						} else {
-							logger.error('[claypot-qiniu-plugin] uploadByStream error: ', respBody);
+						}
+						else {
+							logger.error(
+								'[claypot-qiniu-plugin] uploadByStream error: ',
+								respBody,
+							);
 							reject(respBody);
 						}
 					});
@@ -205,7 +224,9 @@ export default class QiniuClaypotPlugin {
 				const { _qiniu, _domain, _qiniuConfig } = this;
 				const { uptoken } = this._getUptoken();
 				const putExtra = new _qiniu.form_up.PutExtra();
-				const Uploader = isUseResume ? _qiniu.resume_up.ResumeUploader : _qiniu.form_up.FormUploader;
+				const Uploader = isUseResume ?
+					_qiniu.resume_up.ResumeUploader :
+					_qiniu.form_up.FormUploader;
 				const uploader = new Uploader(_qiniuConfig);
 
 				if (isUseResume) {
@@ -224,15 +245,26 @@ export default class QiniuClaypotPlugin {
 				}
 
 				return new Promise((resolve, reject) => {
-					uploader.putFile(uptoken, null, filePath, putExtra, function (respErr, respBody, respInfo) {
+					uploader.putFile(uptoken, null, filePath, putExtra, function (
+						respErr,
+						respBody,
+						respInfo,
+					) {
 						if (respErr) {
-							logger.error('[claypot-qiniu-plugin] uploadByFile error: ', respErr);
+							logger.error(
+								'[claypot-qiniu-plugin] uploadByFile error: ',
+								respErr,
+							);
 							throw respErr;
 						}
 						if (respInfo.statusCode === 200) {
 							resolve({ url: _domain + respInfo.key, ...respInfo });
-						} else {
-							logger.error('[claypot-qiniu-plugin] uploadByFile error: ', respBody);
+						}
+						else {
+							logger.error(
+								'[claypot-qiniu-plugin] uploadByFile error: ',
+								respBody,
+							);
 							reject(respBody);
 						}
 					});
@@ -254,7 +286,9 @@ export default class QiniuClaypotPlugin {
 	middleware(parent) {
 		const { _path } = this;
 
-		if (!_path) { return; }
+		if (!_path) {
+			return;
+		}
 
 		const app = createApp();
 		app.use(async (ctx) => {

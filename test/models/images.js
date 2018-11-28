@@ -22,6 +22,6 @@ export default class Images {
 
 	async uploadByUrl({ body }) {
 		const { url } = body;
-		return this.$qiniu.uplaodByUrl(url);
+		return this.$qiniu.uploadByUrl(url);
 	}
 }
