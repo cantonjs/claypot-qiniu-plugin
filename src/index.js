@@ -2,11 +2,6 @@ import { ensureLogger, createApp } from 'claypot';
 import qiniu from 'qiniu';
 import rp from 'request-promise-native';
 
-const isQiniuCallback = (mac, requestURI, reqBody, callbackAuth) => {
-	const auth = exports.generateAccessToken(mac, requestURI, reqBody);
-	return auth === callbackAuth;
-};
-
 const logger = ensureLogger('qiniu', 'blueBright');
 
 const QINIU_BASE64_PATH = 'putb64/-1';
@@ -59,7 +54,6 @@ export default class QiniuClaypotPlugin {
 			domain,
 			includes = [],
 			excludes = [],
-			store,
 		} = options;
 
 		if (!domain) {
@@ -82,7 +76,6 @@ export default class QiniuClaypotPlugin {
 		this._bucket = bucket;
 		this._includes = includes;
 		this._excludes = excludes;
-		this._storeKey = store;
 
 		const config = new qiniu.conf.Config();
 
@@ -96,9 +89,6 @@ export default class QiniuClaypotPlugin {
 			config.useCdnDomain = useCdnDomain;
 		}
 
-		qiniu.conf.ACCESS_KEY = key;
-		qiniu.conf.SECRET_KEY = secret;
-
 		this._mac = new qiniu.auth.digest.Mac(key, secret);
 		this._bucketManager = new qiniu.rs.BucketManager(this._mac, config);
 
@@ -107,7 +97,6 @@ export default class QiniuClaypotPlugin {
 			expires: this._expiresInUnix,
 		});
 
-		this._qiniu = qiniu;
 		this._qiniuConfig = config;
 	}
 
@@ -190,10 +179,10 @@ export default class QiniuClaypotPlugin {
 				return uploadByBase64(base64);
 			},
 			uploadByStream: (data) => {
-				const { _qiniuConfig, _domain, _qiniu } = this;
+				const { _qiniuConfig, _domain } = this;
 				const { uptoken } = this._getUptoken();
-				const formUploader = new _qiniu.form_up.FormUploader(_qiniuConfig);
-				const putExtra = new _qiniu.form_up.PutExtra();
+				const formUploader = new qiniu.form_up.FormUploader(_qiniuConfig);
+				const putExtra = new qiniu.form_up.PutExtra();
 				return new Promise((resolve, reject) => {
 					formUploader.putStream(uptoken, null, data, putExtra, function (
 						respErr,
@@ -221,12 +210,12 @@ export default class QiniuClaypotPlugin {
 				});
 			},
 			uploadByFile: (filePath, name, isUseResume) => {
-				const { _qiniu, _domain, _qiniuConfig } = this;
+				const { _domain, _qiniuConfig } = this;
 				const { uptoken } = this._getUptoken();
-				const putExtra = new _qiniu.form_up.PutExtra();
+				const putExtra = new qiniu.form_up.PutExtra();
 				const Uploader = isUseResume ?
-					_qiniu.resume_up.ResumeUploader :
-					_qiniu.form_up.FormUploader;
+					qiniu.resume_up.ResumeUploader :
+					qiniu.form_up.FormUploader;
 				const uploader = new Uploader(_qiniuConfig);
 
 				if (isUseResume) {
