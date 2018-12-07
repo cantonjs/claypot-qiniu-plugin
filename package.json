@@ -1,7 +1,7 @@
 {
   "name": "claypot-qiniu-plugin",
   "description": "claypot plugin for qiniu",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "main": "lib/index",
   "files": [
     "*.md",
