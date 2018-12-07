@@ -89,28 +89,42 @@ export default class QiniuClaypotPlugin {
 			config.useCdnDomain = useCdnDomain;
 		}
 
-		this._mac = new qiniu.auth.digest.Mac(key, secret);
-		this._bucketManager = new qiniu.rs.BucketManager(this._mac, config);
-
-		this._putPolicy = new qiniu.rs.PutPolicy({
-			scope: bucket,
-			expires: this._expiresInUnix,
-		});
-
-		this._qiniuConfig = config;
+		const { PutExtra } = qiniu.form_up;
+		const mac = new qiniu.auth.digest.Mac(key, secret);
+		this._qiniuProviders = {
+			mac,
+			bucketManager: new qiniu.rs.BucketManager(mac, config),
+			putPolicy: new qiniu.rs.PutPolicy({
+				scope: bucket,
+				expires: this._expiresInUnix,
+			}),
+			formUploader: new qiniu.form_up.FormUploader(config),
+			resumeUploader: new qiniu.resume_up.ResumeUploader(config),
+			PutExtra,
+			qiniu,
+		};
 	}
 
 	_getUptoken() {
-		const { _putPolicy, _expiresIn, _expiresInUnix, _mac } = this;
+		const {
+			_qiniuProviders: { mac, putPolicy },
+			_expiresIn,
+			_expiresInUnix,
+		} = this;
 		return {
-			uptoken: _putPolicy.uploadToken(_mac),
+			uptoken: putPolicy.uploadToken(mac),
 			expiresIn: _expiresIn,
 			expiresInUnix: _expiresInUnix,
 		};
 	}
 
 	_createExtension() {
-		const { _bucketManager, _bucket, _domain } = this;
+		const {
+			_qiniuProviders,
+			_qiniuProviders: { bucketManager },
+			_bucket,
+			_domain,
+		} = this;
 
 		const uploadByBase64 = async (base64) => {
 			const { uptoken } = this._getUptoken();
@@ -141,7 +155,7 @@ export default class QiniuClaypotPlugin {
 
 		const uploadByUrl = (sourceUrl) => {
 			return new Promise((resolve, reject) => {
-				_bucketManager.fetch(sourceUrl, _bucket, null, (err, respBody) => {
+				bucketManager.fetch(sourceUrl, _bucket, null, (err, respBody) => {
 					if (err) {
 						logger.error(
 							`[claypot-qiniu-plugin] qiniu fetch ${sourceUrl} error:`,
@@ -171,6 +185,7 @@ export default class QiniuClaypotPlugin {
 		};
 
 		return {
+			..._qiniuProviders,
 			uploadByBase64,
 			uploadByUrl,
 			uploadByBuffer: async (data) => {
@@ -179,10 +194,9 @@ export default class QiniuClaypotPlugin {
 				return uploadByBase64(base64);
 			},
 			uploadByStream: (data) => {
-				const { _qiniuConfig, _domain } = this;
+				const { _qiniuProviders: { formUploader, PutExtra }, _domain } = this;
 				const { uptoken } = this._getUptoken();
-				const formUploader = new qiniu.form_up.FormUploader(_qiniuConfig);
-				const putExtra = new qiniu.form_up.PutExtra();
+				const putExtra = new PutExtra();
 				return new Promise((resolve, reject) => {
 					formUploader.putStream(uptoken, null, data, putExtra, function (
 						respErr,
@@ -210,13 +224,13 @@ export default class QiniuClaypotPlugin {
 				});
 			},
 			uploadByFile: (filePath, name, isUseResume) => {
-				const { _domain, _qiniuConfig } = this;
+				const {
+					_domain,
+					_qiniuProviders: { formUploader, resumeUploader, PutExtra },
+				} = this;
 				const { uptoken } = this._getUptoken();
-				const putExtra = new qiniu.form_up.PutExtra();
-				const Uploader = isUseResume ?
-					qiniu.resume_up.ResumeUploader :
-					qiniu.form_up.FormUploader;
-				const uploader = new Uploader(_qiniuConfig);
+				const putExtra = new PutExtra();
+				const uploader = isUseResume ? resumeUploader : formUploader;
 
 				if (isUseResume) {
 					const fname = name || filePath;
