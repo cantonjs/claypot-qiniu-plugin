@@ -1,7 +1,5 @@
 import { startServer, stopServer } from './utils';
 import fetch from 'node-fetch';
-import fs from 'fs';
-import rp from 'request-promise-native';
 
 describe('claypot qiniu plugin', () => {
 	afterEach(stopServer);
@@ -80,7 +78,8 @@ describe('claypot qiniu plugin', () => {
 		const res = await fetch(`${urlRoot}/api/images/url`, {
 			method: 'POST',
 			body: JSON.stringify({
-				url: 'https://ss1.baidu.com/6ONXsjip0QIZ8tyhnq/it/u=1667994205,255365672&fm=5',
+				url:
+					'https://ss1.baidu.com/6ONXsjip0QIZ8tyhnq/it/u=1667994205,255365672&fm=5',
 			}),
 			headers: { 'Content-Type': 'application/json' },
 		});

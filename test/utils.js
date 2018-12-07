@@ -4,6 +4,13 @@ import getPort from 'get-port';
 
 let server;
 
+const {
+	QINIU_ACCESS_KEY,
+	QINIU_SECRET_KEY,
+	QINIU_BUCKET,
+	QINIU_DOMAIN,
+} = process.env;
+
 export async function startServer(pluginConfig, claypotConfig) {
 	const port = await getPort();
 	const urlRoot = `http://127.0.0.1:${port}`;
@@ -17,10 +24,10 @@ export async function startServer(pluginConfig, claypotConfig) {
 				module: '../src',
 				options: {
 					path: '/api/qiniu/uptoken',
-					key: '<your key>',
-					secret: '<your secret>',
-					bucket: '<your bucket>',
-					domain: '<your domain>',
+					key: QINIU_ACCESS_KEY,
+					secret: QINIU_SECRET_KEY,
+					bucket: QINIU_BUCKET,
+					domain: QINIU_DOMAIN,
 					...pluginConfig,
 				},
 			},
